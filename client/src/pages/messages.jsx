@@ -1,11 +1,11 @@
 import React from 'react'
 
-const messages = () => {
+const Messages = () => {
   return (
     <div>
-      <h1>Messages page</h1>
+      <h1>Messages</h1>
     </div>
   )
 }
 
-export default messages
+export default Messages
