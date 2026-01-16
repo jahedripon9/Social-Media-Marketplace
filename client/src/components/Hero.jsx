@@ -1,16 +1,17 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const Hero = () => {
-  const [input, setInput] = React.useState('')
-
+    const [input, setInput] = React.useState('')
+    const navigate = useNavigate();
     const onSubmitHandler = (e) => {
         e.preventDefault()
-
+        navigate(`/marketplace?search=${input}`);
     }
 
     return (
         <>
-           
+
             <div className=" relative flex flex-col items-center justify-center text-sm px-4 md:px-16 lg:px-24 xl:px-40 text-gray-800">
 
                 {/* Avatars + Stars */}
@@ -53,8 +54,8 @@ const Hero = () => {
                     </label>
                 </form>
             </div>
-            
-                
+
+
         </>
     )
 }
