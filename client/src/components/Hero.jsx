@@ -43,7 +43,7 @@ const Hero = () => {
                     </span> <span className='relative bg-gradient-to-r from-[#764de1] to-indigo-600 bg-clip-text text-transparent'>Profiles </span>  online.
                 </h1>
 
-                <p className="max-w-xl text-center text-base my-7">A secure marketplace to buy and sell Instagram, YouTube, Twitter, Telegram and more - fast, safe and hassle-free.</p>
+                <p className="max-w-xl text-center text-base my-6">A secure marketplace to buy and sell Instagram, YouTube, Twitter, Telegram and more - fast, safe and hassle-free.</p>
 
                 {/* Search Box */}
                 <form onSubmit={onSubmitHandler} className='w-full flex justify-center group'>
