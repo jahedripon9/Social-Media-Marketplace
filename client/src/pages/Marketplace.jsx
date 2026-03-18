@@ -1,11 +1,51 @@
-import React from 'react'
-
+import { ArrowLeftIcon, FilterIcon } from "lucide-react";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import ListingCard from "../components/ListingCard";
 const Marketplace = () => {
-  return (
-    <div>
-      <h1>Marktplace Page</h1>
-    </div>
-  )
-}
+  const navigate = useNavigate();
+  const [showFilterPhone, setShowFilterPhone] = useState(false);
+  const { listings } = useSelector((state) => state.listing);
+  const filteredListings = listings.filter((listing) => {
+    return true;
+  });
 
-export default Marketplace
+  return (
+    <div className="px-6 md:px-16 lg:px-14 xl:px-32">
+      <div className="flex items-center justify-between text-slate-500">
+        <button
+          onClick={() => {
+            useNavigate("/");
+            scrollTo(0, 0);
+          }}
+          className="flex items-center gap-2 py-5"
+        >
+          <ArrowLeftIcon className="size-4" />
+          Back to Home
+        </button>
+
+        <button
+          onClick={() => setShowFilterPhone(true)}
+          className="flex sm:hidden items-center gap-2 py-5"
+        >
+          <FilterIcon className="size-4" />
+          Filters
+        </button>
+      </div>
+
+      <div className="relative flex items-start justify-between gap-8 pb-8">
+        <div>Filter</div>
+        <div className="flex-1 grid xl:grid-cols-2 gap-4">
+          {filteredListings
+            .sort((a, b) => (a.featured ? -1 : b.featured ? 1 : 0))
+            .map((listing, inbox) => (
+              <ListingCard listing={listing} key={inbox} />
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Marketplace;
