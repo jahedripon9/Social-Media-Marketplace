@@ -17,7 +17,29 @@ const Marketplace = () => {
   })
 
   const { listings } = useSelector((state) => state.listing);
+
   const filteredListings = listings.filter((listing) => {
+
+    if (filters.platform && filters.platform.length > 0) {
+      if (!filters.platform.includes(listing.platform)) return false;
+    }
+
+    if (filters.maxPrice) {
+      if (listing.price > filters.maxPrice) return false;
+    }
+
+    if (filters.minFollowers) {
+      if (listing.followers_count < filters.minFollowers) return false;
+    }
+
+    if (filters.niche && filters.niche.length > 0) {
+      if (!filters.niche.includes(listing.niche)) return false;
+    }
+
+    if (filters.verified && listing.verified !== filters.verified) return false;
+
+    if (filters.monetized && listing.monetized !== filters.monetized) return false;
+
     return true;
   });
 
