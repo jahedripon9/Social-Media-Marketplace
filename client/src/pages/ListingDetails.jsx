@@ -103,6 +103,14 @@ const ListingDetails = () => {
                   <ChevronRightIcon className="w-5 h-5 text-gray-700" />
                 </button>
 
+                {/* Dots Indicators*/}
+
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+                  {images.map((_, index) => (
+                    <button onClick={() => setCurrent(index)} key={index} className={`w-2.5 h-2.5 rounded-full ${current === index ? "bg-indigo-600" : "bg-gray-300"}`} />
+                  ))}
+                </div>
+
               </div>
             </div>
           )}
