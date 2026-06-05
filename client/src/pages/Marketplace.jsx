@@ -47,7 +47,7 @@ const Marketplace = () => {
     if (search) {
       const trimed = search.trim();
       if (
-        !listing.title.toLowerCase().includes(trimed.toLowerCase()) &&  
+        !listing.title.toLowerCase().includes(trimed.toLowerCase()) &&
         !listing.username.toLowerCase().includes(trimed.toLowerCase()) &&
         !listing.description.toLowerCase().includes(trimed.toLowerCase()) &&
         !listing.niche.toLowerCase().includes(trimed.toLowerCase()) &&
@@ -63,7 +63,7 @@ const Marketplace = () => {
       <div className="flex items-center justify-between text-slate-500">
         <button
           onClick={() => {
-            useNavigate("/");
+            navigate("/");
             scrollTo(0, 0);
           }}
           className="flex items-center gap-2 py-5"
