@@ -94,13 +94,13 @@ const Messages = () => {
                 <button onClick={() => handleOpenChat(chat)}
                   key={chat.id} className='w-full p-4 hover:bg-gray-50 transition-colors text-left'>
                   <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <img src={chatUser?.image} alt={chatUser?.name} className="w-10 h-10 rounded-lg object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <h3 className='font-semibold text-gray-800 truncate'>{chat.listing?.title}</h3>
-                        <span className='text-xs text-gray-500 flex-shrink-0 ml-2'>{formatTime(chat.updatedAt)}</span>
+                        <span className='text-xs text-gray-500 shrink-0 ml-2'>{formatTime(chat.updatedAt)}</span>
                       </div>
                       <p className="text-sm text-gray-600 truncate mb-1">{chatUser?.name}</p>
                       <p className={`text-sm truncate ${!chat.isLastMessageRead && chat.lastMessageSenderId !== user?.id ? 'text-indigo-600 font-medium' : 'text-gray-500'
