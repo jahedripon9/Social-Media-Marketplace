@@ -10,6 +10,7 @@ import MyOrders from './pages/MyOrders'
 import Loading from './pages/Loading'
 import Navbar from './components/Navbar'
 import ChatBox from './components/ChatBox'
+import { Toaster } from 'react-hot-toast'
 
 
 const App = () => {
@@ -17,6 +18,7 @@ const App = () => {
 
   return (
     <div>
+      <Toaster />
       {!pathname.includes('/admin') && <Navbar />}
       <Routes>
         <Route path='/' element={<Home />} />

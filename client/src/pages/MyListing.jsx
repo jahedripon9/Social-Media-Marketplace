@@ -1,14 +1,19 @@
 import { ArrowDownCircleIcon, BanIcon, CheckCircle, Clock, CoinsIcon, DollarSign, Edit, Eye, EyeIcon, EyeOffIcon, Lock, Plus, StarIcon, TrashIcon, TrendingUp, User, WalletIcon, XCircle } from 'lucide-react';
-import React from 'react'
+import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom';
 import StatCard from '../components/StatCard';
 import { platformIcons } from '../assets/assets';
+import CredentialSubmission from '../components/CredentialSubmission'
+import WithdrawModal from '../components/WithdrawModal';
 
 const MyListing = () => {
   const { userListings, balance } = useSelector((state) => state.listing)
   const currency = import.meta.env.VITE_CURRENCY || '$';
   const navigate = useNavigate();
+
+  const [showCredentialSubmission, setShowCredentialSubmission] = useState(null);
+  const [showWithdrawal, setShowWithdrawal] = useState(null);
 
   const totalValue = userListings.reduce((sum, listing) => sum + (listing.price || 0), 0);
   const activeListings = userListings.filter((listing) => listing.status === 'active').length;
@@ -93,7 +98,7 @@ const MyListing = () => {
           { label: 'Withdrawn', value: balance.withdrawn, icon: ArrowDownCircleIcon },
           { label: 'Available', value: balance.available, icon: CoinsIcon },
         ].map((item, index) => (
-          <div key={index} className="flex flex-1 items-center justify-between p-4 rounded-lg border border-gray-100 cursor-pointer">
+          <div onClick={() => item.label === "Available" && setShowWithdrawal(true)} key={index} className="flex flex-1 items-center justify-between p-4 rounded-lg border border-gray-100 cursor-pointer">
             <div className="flex items-center gap-3">
               <item.icon className='text-gray-500 w-6 h-6' />
               <span className='font-medium text-gray-600'>{item.label}</span>
@@ -134,7 +139,9 @@ const MyListing = () => {
                               <div className="bg-white text-gray-600 text-xs rounded border border-gray-200 p-2 px-3">
                                 {!listing.isCredentialSubmitted && (
                                   <>
-                                    <button className='flex items-center gap-2 text-nowrap'>Add Credentials</button>
+                                    <button onClick={() => setShowCredentialSubmission(listing)} className='flex items-center gap-2 text-nowrap'>Add Credentials</button>
+
+
                                     <hr className='border-gray-200 my-2' />
                                   </>
                                 )}
@@ -203,6 +210,15 @@ const MyListing = () => {
           </div>
         )
       }
+
+      {showCredentialSubmission && (
+        <CredentialSubmission listing={showCredentialSubmission} onClose={() => setShowCredentialSubmission(null)} />
+      )}
+
+      {showWithdrawal && (
+        <WithdrawModal onClose={() => setShowWithdrawal(null)} />
+      )}
+
       {/* Footer */}
 
       <div className='bg-white border-t border-gray-200 py-4 mt-28 text-center '>
