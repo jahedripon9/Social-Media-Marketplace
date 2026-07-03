@@ -34,7 +34,9 @@ const ManageListing = () => {
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
+  const handleImageUpload = async (event) => {
 
+  }
   return (
     <div>
       <h1>Manage Listing page</h1>
