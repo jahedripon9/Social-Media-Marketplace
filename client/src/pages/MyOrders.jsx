@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { dummyOrders, platformIcons } from '../assets/assets'
 import toast from 'react-hot-toast';
-import { Loader2Icon } from 'lucide-react';
+import { CheckCircle2, ChevronDown, ChevronUp, Copy, Loader2Icon } from 'lucide-react';
+import { format } from 'date-fns';
 
 const MyOrders = () => {
   const currency = import.meta.env.VITE_CURRENCY || '$'
@@ -73,15 +74,77 @@ const MyOrders = () => {
                     <div>
                       <h3 className='text-lg font-semibold'>{listing.title}</h3>
                       <p className='text-sm text-gray-500 mt-1'>@{listing.username} • <span className='capitalize'>{listing.platform}</span></p>
+                      <div className='flex gap-2 mt-2'>
+                        {listing.verified && (
+                          <span className='flex items-center text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md'>
+                            <CheckCircle2 className='w-3 h-3 mr-1' /> Verified
+                          </span>
+                        )}
+                        {listing.monetized && (
+                          <span className='flex items-center text-xs bg-green-50 text-green-600 px-2 py-1 rounded-md'>
+                            <span className='text-xs font-medium mr-1'>$ </span> Monetized
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className='text-right'>
+                      <p className='text2xl font-bold'>
+                        {currency}
+                        {Number(order.amount).toLocaleString()}
+                      </p>
+                      <p className='text-sm text-gray-500 mt-1'>USD</p>
                     </div>
                   </div>
                 </div>
               </div>
+              <div className='flex flex-col gap-2 items-end'>
+                <button className='flex items-center gap-2 bg-white border border-gray-200 px-3 py-2 text-sm rounded hover:shadow' aria-expanded={isExpanded} onClick={() => setExpandedId((p) => (p === id ? null : id))}>
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp className='size-4' /> Hide Credentials
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className='size-4' /> View Credentials
+                    </>
+                  )}
+                </button>
+                <div className='text-xs text-gray-500 mt-2 text-right'>
+                  <div>
+                    Credential Purchased: {format(new Date(order.createdAt), 'dd MMM yyyy')}
+                  </div>
+                </div>
+              </div>
+              {isExpanded && (
+                <div className='mt-4 md:mt-0 pt-4'>
+                  <div className='space-y-2'>
+                    {credential.updatedCredential.map((cred) => (
+                      <div key={cred.name} className='flex items-center justify-between gap-3 bg-gray-50 rounded-md p-2'>
+                        <div>
+                          <p className='text-sm font-medium text-gray-800'>{cred.name}</p>
+                          <p className='text-xs text-gray-500'>{cred.type}</p>
+                        </div>
+                        <div className='flex items-center gap-2'>
+                          <code className='text-sm font-mono'>
+                            {mask(cred.value, cred.type)}
+                          </code>
+                          <button onClick={(e) => {
+                            e.stopPropagation();
+                            copy(cred.value);
+                          }} className='px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:shadow' title='Copy credential'>
+                            <Copy className='size-4' />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )
         })}
       </div>
-    </div>
+    </div >
   )
 }
 
