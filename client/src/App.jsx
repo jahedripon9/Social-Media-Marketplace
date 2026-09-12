@@ -43,7 +43,8 @@ const App = () => {
           <Route path='change-credentials' element={<CredentialChange />} />
           <Route path='list-listings' element={<AllListings />} />
           <Route path='transactions' element={<Transactions />} />
-          <Route path='withdrawal' element={<Withdrawal />} />
+          <Route path='withdrawal'
+            element={<Withdrawal />} />
         </Route>
 
       </Routes>
