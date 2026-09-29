@@ -57,3 +57,20 @@ export const addListing = async (req, res) => {
     res.status(500).json({ message: error.code || error.message });
   }
 };
+//Controller For Getting All Listing
+export const getAllPublicListing = async (req, res) => {
+  try {
+    const listings = await prisma.listing.findMany({
+      where: { status: "active" },
+      include: { owner: true },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!listings || listings.length === 0) {
+      return res.json({ listings: [] });
+    }
+    return res.json({ listings });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.code || error.message });
+  }
+};
