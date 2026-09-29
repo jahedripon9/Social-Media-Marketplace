@@ -74,3 +74,32 @@ export const getAllPublicListing = async (req, res) => {
     res.status(500).json({ message: error.code || error.message });
   }
 };
+
+// Controller for Getting All User Listing
+export const getAllUserListing = async (req, res) => {
+  try {
+    const { userId } = await req.auth();
+    // get all listings export deleted
+    const listing = await prisma.listing.findMany({
+      where: { ownerId: userId, status: { not: "deleted" } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    const balance = {
+      earned: user.earned,
+      withdrawn: user.withdrawn,
+      available: user.earned - user.withdrawn,
+    };
+    if (!listings || listings.length === 0) {
+      return res.json({ listing: [], balance });
+    }
+    return res.json({ listing, balance });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.code || error.message });
+  }
+};
