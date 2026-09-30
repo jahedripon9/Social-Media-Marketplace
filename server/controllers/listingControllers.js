@@ -196,3 +196,80 @@ export const toggleStatus = async (req, res) => {
     res.status(500).json({ message: error.code || error.message });
   }
 };
+
+// Delete User Listing
+
+export const deleteUserListing = async (req, res) => {
+  try {
+    const { userId } = await req.auth();
+    const { listingId } = req.params;
+
+    const listing = await prisma.listing.findFirst({
+      where: { id: listingId, ownerId: userId },
+      include: { owner: true },
+    });
+    if (!listing) {
+      return res.status(404).json({ message: "Listing not found" });
+    }
+
+    if (!listing.status === "sold") {
+      return res.status(400).json({ message: "sold listing can't be deleted" });
+    }
+
+    // If password has been changed, send the new password to the owner
+    if (listing.isCredentialChanged) {
+      //send email to owner
+    }
+
+    await prisma.listing.update({
+      where: { id: listingId },
+      data: {
+        status: "deleted",
+      },
+    });
+    return res.json({ message: "listing deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.code || error.message });
+  }
+};
+
+// Add Credential
+
+export const addCredential = async (req, res) => {
+  try {
+    const { userId } = await req.auth();
+    const { listingId, credential } = req.body;
+    if (credential.length === 0 || !listingId) {
+      return res.status(400).json({ message: "Missing Fields" });
+    }
+
+    const listing = await prisma.listing.findFirst({
+      where: { id: listingId, ownerId: userId },
+    });
+    if (!listing) {
+      return res
+        .status(404)
+        .json({ message: "Listing not found or you are not the owner" });
+    }
+
+    await prisma.credential.create({
+      data: {
+        listingId,
+        originalCredential: credential,
+      },
+    });
+
+    await prisma.listing.update({
+      where: { id: listingId },
+      data: {
+        isCredentialSubmitted: true,
+      },
+    });
+
+    return res.json({ message: "Credential added Successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.code || error.message });
+  }
+};
