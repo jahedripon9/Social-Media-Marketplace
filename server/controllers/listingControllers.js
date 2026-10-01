@@ -368,3 +368,13 @@ export const withdrawAmount = async (req, res) => {
     res.status(500).json({ message: error.code || error.message });
   }
 };
+
+//Purchase Account
+export const purchaseAccount = async (req, res) => {
+  try {
+    
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.code || error.message });
+  }
+};
