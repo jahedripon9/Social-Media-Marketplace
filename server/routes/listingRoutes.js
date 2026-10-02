@@ -12,8 +12,8 @@ import {
   updateListing,
   withdrawAmount,
 } from "../controllers/listingControllers.js";
-import { protect } from "../middleware/authMiddleware.js";
-import upload from "../middleware/uploadMiddleware.js";
+import  upload  from "../configs/multer.js";
+import { protect } from "../middlewares/authMiddleware.js";
 
 const listingRouter = express.Router();
 

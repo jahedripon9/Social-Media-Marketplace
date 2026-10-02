@@ -2,7 +2,7 @@ import { err } from "inngest/types";
 import imagekit from "../configs/imageKit.js";
 import prisma from "../configs/prisma.js";
 import fs from "fs";
-import { listenerCount } from "cluster";
+
 
 // Controller for Adding Listing to Database
 export const addListing = async (req, res) => {
@@ -80,91 +80,288 @@ export const getAllPublicListing = async (req, res) => {
 export const getAllUserListing = async (req, res) => {
   try {
     const { userId } = await req.auth();
-    // get all listings export deleted
-    const listing = await prisma.listing.findMany({
-      where: { ownerId: userId, status: { not: "deleted" } },
-      orderBy: { createdAt: "desc" },
+
+    console.log("getAllUserListing userId:", userId);
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+      });
+    }
+
+    const listings = await prisma.listing.findMany({
+      where: {
+        ownerId: userId,
+        status: {
+          not: "deleted",
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: {
+        id: userId,
+      },
     });
 
-    const balance = {
-      earned: user.earned,
-      withdrawn: user.withdrawn,
-      available: user.earned - user.withdrawn,
-    };
-    if (!listings || listings.length === 0) {
-      return res.json({ listing: [], balance });
+    console.log("getAllUserListing user:", user);
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found in database",
+        userId,
+      });
     }
-    return res.json({ listing, balance });
+
+    const earned = user.earned ?? 0;
+    const withdrawn = user.withdrawn ?? 0;
+
+    const balance = {
+      earned,
+      withdrawn,
+      available: earned - withdrawn,
+    };
+
+    return res.json({
+      listings,
+      balance,
+    });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: error.code || error.message });
+    console.log("Get All User Listing Error:", error);
+
+    return res.status(500).json({
+      message: error.code || error.message,
+    });
   }
 };
+// export const getAllUserListing = async (req, res) => {
+//   try {
+//     const { userId } = await req.auth();
+//     // get all listings export deleted
+//     const listings = await prisma.listing.findMany({
+//       where: { ownerId: userId, status: { not: "deleted" } },
+//       orderBy: { createdAt: "desc" },
+//     });
 
+//     const user = await prisma.user.findUnique({
+//       where: { id: userId },
+//     });
+
+//     const balance = {
+//       earned: user.earned,
+//       withdrawn: user.withdrawn,
+//       available: user.earned - user.withdrawn,
+//     };
+//     if (!listings || listings.length === 0) {
+//       return res.json({ listings: [], balance });
+//     }
+//     return res.json({ listings, balance });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ message: error.code || error.message });
+//   }
+// };
+
+// // Controller For Updating Listing in Database
+// export const updateListing = async (req, res) => {
+//   try {
+//     const { userId } = await req.auth();
+//     const accountDetails = JSON.parse(req.body.accountDetails);
+
+//     if (req.files.length + accountDetails.images.length > 5) {
+//       return res
+//         .status(400)
+//         .json({ message: "You can only upload up to 5 images" });
+//     }
+
+//     accountDetails.followers_count = parseFloat(accountDetails.followers_count);
+//     accountDetails.engagement_rate = parseFloat(accountDetails.engagement_rate);
+//     accountDetails.monthly_views = parseFloat(accountDetails.monthly_views);
+//     accountDetails.price = parseFloat(accountDetails.price);
+//     accountDetails.platform = accountDetails.platform.toLowerCase();
+//     accountDetails.niche = accountDetails.niche.toLowerCase();
+
+//     const listing = await prisma.listing.update({
+//       where: { id: accountDetails.id, ownerId: userId },
+//       data: accountDetails,
+//     });
+
+//     if (!listing) {
+//       return res.status(404).json({ message: "Listing not found" });
+//     }
+
+//     if (listing.status === "sold") {
+//       return res.status(400).json({ message: "you can't update sold listing" });
+//     }
+
+//     if (req.files.length > 0) {
+//       const uploadImages = req.files.map(async (file) => {
+//         const response = await imagekit.files.upload({
+//           file: fs.createReadStream(file.path),
+//           fileName: `${Date.now()}.png`,
+//           folder: "flip-earn",
+//           transformation: { pre: "w-1280,h-auto" },
+//         });
+//         return response.url;
+//       });
+
+//       // Wait for all uploads to complete
+//       const images = await Promise.all(uploadImages);
+
+//       const listing = await prisma.listing.create({
+//         // where: { id: accountDetails, ownerId: userId },
+//         data: {
+//           ownerId: userId,
+//           ...accountDetails,
+//           images: [...accountDetails.images, ...images],
+//         },
+//       });
+//       return res.json({ message: "Account Updated Successfully", listing });
+//     }
+//     return res.json({ message: "Account Updated Successfully", listing });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ message: error.code || error.message });
+//   }
+// };
 // Controller For Updating Listing in Database
 export const updateListing = async (req, res) => {
   try {
     const { userId } = await req.auth();
+
+    if (!req.body.accountDetails) {
+      return res.status(400).json({
+        message: "accountDetails is required",
+      });
+    }
+
     const accountDetails = JSON.parse(req.body.accountDetails);
 
-    if (req.files.length + accountDetails.images.length > 5) {
-      return res
-        .status(400)
-        .json({ message: "You can only upload up to 5 images" });
+    const listingId = accountDetails.id;
+
+    if (!listingId) {
+      return res.status(400).json({
+        message: "Listing ID is required",
+      });
     }
 
-    accountDetails.followers_count = parseFloat(accountDetails.followers_count);
-    accountDetails.engagement_rate = parseFloat(accountDetails.engagement_rate);
-    accountDetails.monthly_views = parseFloat(accountDetails.monthly_views);
-    accountDetails.price = parseFloat(accountDetails.price);
-    accountDetails.platform = accountDetails.platform.toLowerCase();
-    accountDetails.niche = accountDetails.niche.toLowerCase();
+    // Multer files may be undefined
+    const files = req.files || [];
 
-    const listing = await prisma.listing.update({
-      where: { id: accountDetails.id, ownerId: userId },
-      data: accountDetails,
+    // Existing images
+    const existingImages = Array.isArray(accountDetails.images)
+      ? accountDetails.images
+      : [];
+
+    // Maximum 5 images
+    if (files.length + existingImages.length > 5) {
+      return res.status(400).json({
+        message: "You can only upload up to 5 images",
+      });
+    }
+
+    // Find listing owned by current user
+    const existingListing = await prisma.listing.findFirst({
+      where: {
+        id: listingId,
+        ownerId: userId,
+      },
     });
 
-    if (!listing) {
-      return res.status(404).json({ message: "Listing not found" });
+    if (!existingListing) {
+      return res.status(404).json({
+        message: "Listing not found",
+      });
     }
 
-    if (listing.status === "sold") {
-      return res.status(400).json({ message: "you can't update sold listing" });
+    // Sold listing cannot be updated
+    if (existingListing.status === "sold") {
+      return res.status(400).json({
+        message: "You can't update sold listing",
+      });
     }
 
-    if (req.files.length > 0) {
-      const uploadImages = req.files.map(async (file) => {
+    // Convert numeric fields
+    accountDetails.followers_count = Number(
+      accountDetails.followers_count,
+    );
+
+    accountDetails.engagement_rate = Number(
+      accountDetails.engagement_rate,
+    );
+
+    accountDetails.monthly_views = Number(
+      accountDetails.monthly_views,
+    );
+
+    accountDetails.price = Number(accountDetails.price);
+
+    // Normalize text
+    if (accountDetails.platform) {
+      accountDetails.platform =
+        accountDetails.platform.toLowerCase();
+    }
+
+    if (accountDetails.niche) {
+      accountDetails.niche =
+        accountDetails.niche.toLowerCase();
+    }
+
+    // Upload new images
+    let newImages = [];
+
+    if (files.length > 0) {
+      const uploadImages = files.map(async (file) => {
         const response = await imagekit.files.upload({
           file: fs.createReadStream(file.path),
-          fileName: `${Date.now()}.png`,
+          fileName: `${Date.now()}-${file.originalname}`,
           folder: "flip-earn",
-          transformation: { pre: "w-1280,h-auto" },
+          transformation: {
+            pre: "w-1280,h-auto",
+          },
         });
+
         return response.url;
       });
 
-      // Wait for all uploads to complete
-      const images = await Promise.all(uploadImages);
-
-      const listing = await prisma.listing.update({
-        where: { id: accountDetails, ownerId: userId },
-        data: {
-          ownerId: userId,
-          ...accountDetails,
-          images: [...accountDetails.images, ...images],
-        },
-      });
-      return res.json({ message: "Account Updated Successfully", listing });
+      newImages = await Promise.all(uploadImages);
     }
-    return res.json({ message: "Account Updated Successfully", listing });
+
+    // Combine old + new images
+    const images = [
+      ...existingImages,
+      ...newImages,
+    ];
+
+    // Don't send id/ownerId manually
+    const {
+      id,
+      ownerId,
+      ...updateData
+    } = accountDetails;
+
+    updateData.images = images;
+
+    const listing = await prisma.listing.update({
+      where: {
+        id: listingId,
+      },
+      data: updateData,
+    });
+
+    return res.json({
+      message: "Account Updated Successfully",
+      listing,
+    });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: error.code || error.message });
+    console.error("Update Listing Error:", error);
+
+    return res.status(500).json({
+      message: error.code || error.message,
+    });
   }
 };
 // Toggle Status
