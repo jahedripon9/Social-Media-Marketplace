@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { Loader2Icon, Upload } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
+import api from '../configs/axios';
+import { getAllPublicListing, getAllUserListing } from '../app/features/listingSlice';
 
 const ManageListing = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { userListings } = useSelector((state) => state.listing);
+
+  const { getToken } = useAuth();
+  const dispatch = useDispatch()
 
   const [loadingListing, setLoadingListing] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -29,8 +35,33 @@ const ManageListing = () => {
     images: [],
   });
 
-  const platforms = ['youtube', 'instagram', 'tiktok', 'facebook', 'twitter', 'linkedin', 'pinterest', 'twitch', 'discord'];
-  const niches = ['technology', 'programming', 'web development', 'mobile app development', 'artificial intelligence', 'cybersecurity', 'gaming', 'education', 'business', 'finance', 'investing', 'cryptocurrency', 'marketing', 'digital marketing', 'seo', 'social media', 'health', 'fitness', 'nutrition', 'mental health', 'beauty', 'fashion', 'travel', 'food', 'cooking', 'photography', 'videography', 'music', 'movies', 'books', 'lifestyle', 'productivity', 'motivation', 'self improvement', 'career', 'freelancing', 'entrepreneurship', 'science', 'history', 'news', 'sports', 'parenting', 'pets', 'automobile', 'real estate', 'home decor', 'diy', 'crafts', 'comedy', 'podcast', 'other'];
+  const platforms = ['youtube',
+    'instagram',
+    'tiktok',
+    'facebook',
+    'twitter',
+    'linkedin',
+    'pinterest',
+    'snapchat',
+    'twitch',
+    'discord'];
+  const niches = [
+    'fitness',
+    'food',
+    'travel',
+    'tech',
+    'gaming',
+    'fashion',
+    'beauty',
+    'business',
+    'education',
+    'entertainment',
+    'music',
+    'art',
+    'sports',
+    'health',
+    'finance',
+    'other'];
 
   const ageRanges = ['13-17 years', '18-24 years', '25-34 years', '35-44 years', '45-54 years', '55-64 years', '65+ years', 'Mixed ages'];
 
@@ -70,10 +101,170 @@ const ManageListing = () => {
 
   }, [id]);
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   toast.loading('Saving listing...');
+
+  //   const dataCopy = structuredClone(formData);
+
+  //   try {
+  //     if (isEditing) {
+  //       dataCopy.images = formData.images.filter((image) => typeof image !== 'string');
+
+  //       const formDataInstance = new FormData();
+  //       formDataInstance.append('accountDetails', JSON.stringify(dataCopy));
+
+  //       formData.images.filter((image) => typeof image !== 'string').forEach((image) => { formDataInstance.append('images', image) });
+
+  //       const token = await getToken();
+  //       const { data } = await api.put('/api/listing', formDataInstance, {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       }
+  //       )
+  //       toast.dismissAll();
+  //       toast.success(data.message);
+  //       dispatch(getAllUserListing({ getToken }));
+  //       dispatch(getAllPublicListing());
+  //       navigate('/my-listing');
+  //     } else {
+  //       delete dataCopy.images;
+
+  //       const formDataInstance = new FormData();
+  //       formDataInstance.append('accountDetails', JSON.stringify(dataCopy));
+  //       formData.images.forEach((image) => {
+  //         formDataInstance.append('images', image);
+  //       })
+  //       const token = await getToken();
+  //       const { data } = await api.put('/api/listing', formDataInstance, {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       })
+  //       toast.dismissAll();
+  //       toast.success(data.message);
+  //       dispatch(getAllUserListing({ getToken }));
+  //       dispatch(getAllPublicListing());
+  //       navigate('/my-listing');
+  //     }
+  //   } catch (error) {
+  //     toast.dismissAll();
+  //     toast.error(error?.response?.data?.message || error.message);
+  //   }
+  // }
   const handleSubmit = async (e) => {
     e.preventDefault();
-  }
 
+    toast.loading(isEditing ? 'Updating listing...' : 'Creating listing...');
+
+    try {
+      const formDataInstance = new FormData();
+
+      if (isEditing) {
+        // Keep only existing image URLs
+        const existingImages = formData.images.filter(
+          (image) => typeof image === 'string'
+        );
+
+        // Upload only newly selected files
+        const newImages = formData.images.filter(
+          (image) => typeof image !== 'string'
+        );
+
+        // Make sure listing ID exists
+        if (!id) {
+          toast.dismiss();
+          toast.error('Listing ID is missing');
+          return;
+        }
+
+        const accountDetails = {
+          ...formData,
+          id: id,
+          images: existingImages,
+        };
+
+        formDataInstance.append(
+          'accountDetails',
+          JSON.stringify(accountDetails)
+        );
+
+        newImages.forEach((image) => {
+          formDataInstance.append('images', image);
+        });
+
+        const token = await getToken();
+
+        const { data } = await api.put(
+          '/api/listing',
+          formDataInstance,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        toast.dismiss();
+        toast.success(data.message);
+
+        dispatch(getAllUserListing({ getToken }));
+        dispatch(getAllPublicListing());
+
+        navigate('/my-listing');
+
+      } else {
+        // CREATE LISTING
+
+        const accountDetails = {
+          ...formData,
+        };
+
+        // Don't send images inside JSON
+        delete accountDetails.images;
+
+        formDataInstance.append(
+          'accountDetails',
+          JSON.stringify(accountDetails)
+        );
+
+        formData.images.forEach((image) => {
+          formDataInstance.append('images', image);
+        });
+
+        const token = await getToken();
+
+        const { data } = await api.post(
+          '/api/listing',
+          formDataInstance,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        toast.dismiss();
+        toast.success(data.message);
+
+        dispatch(getAllUserListing({ getToken }));
+        dispatch(getAllPublicListing());
+
+        navigate('/my-listing');
+      }
+
+    } catch (error) {
+      toast.dismiss();
+
+      console.log(
+        'Listing Submit Error:',
+        error.response?.data || error
+      );
+
+      toast.error(
+        error?.response?.data?.message ||
+        error.message ||
+        'Something went wrong'
+      );
+    }
+  };
   if (loadingListing) {
     return (
       <div className='h-screen flex items-center justify-center'>
