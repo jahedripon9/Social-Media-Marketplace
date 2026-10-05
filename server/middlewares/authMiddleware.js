@@ -14,6 +14,9 @@ export const protect = async (req, res, next) => {
     res.status(401).json({ message: error.code || error.message });
   }
 };
+
+// admin protect 
+
 export const protectAdmin = async (req, res, next) => {
   try {
     const { user } = await clerkClient.users.getUser(await req.auth().userId);
