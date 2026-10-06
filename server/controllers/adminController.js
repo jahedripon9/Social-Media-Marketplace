@@ -230,3 +230,48 @@ export const getAllTransactions = async (req, res) => {
     res.status(400).json({ message: error.code || error.message });
   }
 };
+
+// Controller For Getting All Withdraw Requests
+export const getAllWithdrawRequests = async (req, res) => {
+  try {
+    const requests = await prisma.withdrawal.findMany({
+      orderBy: { createdAt: "asc" },
+      include: { user: true },
+    });
+
+    if (!requests || requests.length === 0) {
+      return res.json({ requests: [] });
+    }
+    return res.json({ requests });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.code || error.message });
+  }
+};
+
+// Controller For Marking Withdrawal as paid
+export const markWithdrawalAsPaid = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const withdrawal = await prisma.withdrawal.findUnique({
+      where: { id },
+    });
+    if (!withdrawal) {
+      return res.status(404).json({ message: "Withdrawal not found" });
+    }
+    if (withdrawal.isWithdrawn) {
+      return res
+        .status(400)
+        .json({ message: "Withdrawal already  marked as paid" });
+    }
+
+    await prisma.withdrawal.update({
+      where: { id },
+      data: { isWithdrawn: true },
+    });
+    return res.json({ message: "Withdrawn marked as paid" });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.code || error.message });
+  }
+};
