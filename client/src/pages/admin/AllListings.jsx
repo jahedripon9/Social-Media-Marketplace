@@ -7,7 +7,6 @@ import {
   XIcon,
 } from "lucide-react";
 import ListingDetailsModal from "../../components/admin/ListingDetailsModal";
-import { dummyListings } from "../../assets/assets";
 import { useAuth } from "@clerk/clerk-react";
 import api from "../../configs/axios";
 import toast from "react-hot-toast";
