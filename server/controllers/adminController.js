@@ -104,7 +104,7 @@ export const getAllUnverifiedListing = async (req, res) => {
       where: {
         isCredentialSubmitted: true,
         isCredentialVerified: false,
-        status: "deleted",
+        status: { not: "deleted" },
       },
       orderBy: { createdAt: "desc" },
     });
