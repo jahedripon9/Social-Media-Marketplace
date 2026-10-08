@@ -3,7 +3,6 @@ import imagekit from "../configs/imageKit.js";
 import prisma from "../configs/prisma.js";
 import fs from "fs";
 
-
 // Controller for Adding Listing to Database
 export const addListing = async (req, res) => {
   try {
@@ -285,29 +284,21 @@ export const updateListing = async (req, res) => {
     }
 
     // Convert numeric fields
-    accountDetails.followers_count = Number(
-      accountDetails.followers_count,
-    );
+    accountDetails.followers_count = Number(accountDetails.followers_count);
 
-    accountDetails.engagement_rate = Number(
-      accountDetails.engagement_rate,
-    );
+    accountDetails.engagement_rate = Number(accountDetails.engagement_rate);
 
-    accountDetails.monthly_views = Number(
-      accountDetails.monthly_views,
-    );
+    accountDetails.monthly_views = Number(accountDetails.monthly_views);
 
     accountDetails.price = Number(accountDetails.price);
 
     // Normalize text
     if (accountDetails.platform) {
-      accountDetails.platform =
-        accountDetails.platform.toLowerCase();
+      accountDetails.platform = accountDetails.platform.toLowerCase();
     }
 
     if (accountDetails.niche) {
-      accountDetails.niche =
-        accountDetails.niche.toLowerCase();
+      accountDetails.niche = accountDetails.niche.toLowerCase();
     }
 
     // Upload new images
@@ -331,17 +322,10 @@ export const updateListing = async (req, res) => {
     }
 
     // Combine old + new images
-    const images = [
-      ...existingImages,
-      ...newImages,
-    ];
+    const images = [...existingImages, ...newImages];
 
     // Don't send id/ownerId manually
-    const {
-      id,
-      ownerId,
-      ...updateData
-    } = accountDetails;
+    const { id, ownerId, ...updateData } = accountDetails;
 
     updateData.images = images;
 
@@ -569,7 +553,34 @@ export const withdrawAmount = async (req, res) => {
 //Purchase Account
 export const purchaseAccount = async (req, res) => {
   try {
-    
+    const { userId } = await req.auth();
+    const { listingId } = req.params();
+    const { origin } = req.headers;
+
+    const listing = await prisma.listing.findFirst({
+      where: { id: listingId, status: "active" },
+    });
+
+    if (!listing) {
+      return res
+        .status(404)
+        .json({ message: "Listing not found or not active" });
+    }
+
+    if (listing.ownerId === userId) {
+      return res
+        .status(400)
+        .json({ message: "You can't purchase your own listing" });
+    }
+
+    const transaction = await prisma.transaction.create({
+      data: {
+        listingId,
+        ownerId: listing.ownerId,
+        userId,
+        amount: listing.price,
+      },
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: error.code || error.message });

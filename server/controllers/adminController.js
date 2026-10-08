@@ -181,24 +181,101 @@ export const getAllUnchangedListings = async (req, res) => {
 
 // Change credential for verified listing
 
+// export const changeCredential = async (req, res) => {
+//   try {
+//     const { listingId } = req.params;
+//     const { newCredential, credentialId } = req.body;
+//     await prisma.listing.update({
+//       where: { id: credentialId, listingId },
+//       data: { updatedCredential: newCredential },
+//     });
+
+//     await prisma.listing.update({
+//       where: { id: listingId },
+//       data: { isCredentialChanged: true },
+//     });
+
+//     return res.json({ message: "Credential change Successfully" });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(400).json({ message: error.code || error.message });
+//   }
+// };
+// Change credential for verified listing
 export const changeCredential = async (req, res) => {
   try {
     const { listingId } = req.params;
     const { newCredential, credentialId } = req.body;
-    await prisma.listing.update({
-      where: { id: credentialId, listingId },
-      data: { updatedCredential: newCredential },
+
+    // Validate required data
+    if (!listingId || !credentialId || !newCredential) {
+      return res.status(400).json({
+        message: "Listing ID, Credential ID and new credential are required",
+      });
+    }
+
+    // Check listing exists
+    const listing = await prisma.listing.findUnique({
+      where: {
+        id: listingId,
+      },
     });
 
-    await prisma.listing.update({
-      where: { id: listingId },
-      data: { isCredentialChanged: true },
+    if (!listing) {
+      return res.status(404).json({
+        message: "Listing not found",
+      });
+    }
+
+    // Check credential exists
+    const credential = await prisma.credential.findUnique({
+      where: {
+        id: credentialId,
+      },
     });
 
-    return res.json({ message: "Credential change Successfully" });
+    if (!credential) {
+      return res.status(404).json({
+        message: "Credential not found",
+      });
+    }
+
+    // Make sure credential belongs to this listing
+    if (credential.listingId !== listingId) {
+      return res.status(400).json({
+        message: "Credential does not belong to this listing",
+      });
+    }
+
+    // Update credential
+    await prisma.credential.update({
+      where: {
+        id: credentialId,
+      },
+      data: {
+        updatedCredential: newCredential,
+      },
+    });
+
+    // Mark credential as changed
+    await prisma.listing.update({
+      where: {
+        id: listingId,
+      },
+      data: {
+        isCredentialChanged: true,
+      },
+    });
+
+    return res.json({
+      message: "Credential changed successfully",
+    });
   } catch (error) {
-    console.log(error);
-    res.status(400).json({ message: error.code || error.message });
+    console.log("changeCredential error:", error);
+
+    return res.status(400).json({
+      message: error.code || error.message,
+    });
   }
 };
 
