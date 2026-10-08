@@ -555,7 +555,7 @@ export const withdrawAmount = async (req, res) => {
 export const purchaseAccount = async (req, res) => {
   try {
     const { userId } = await req.auth();
-    const { listingId } = req.params();
+    const { listingId } = req.params;
     const { origin } = req.headers;
 
     const listing = await prisma.listing.findFirst({
@@ -604,7 +604,7 @@ export const purchaseAccount = async (req, res) => {
         transactionId: transaction.id,
         appId: "flipearn",
       },
-      expires_at: Math.floor(Date.Now() / 1000) + 30 * 60, //Expires in 30 minutes
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60, //Expires in 30 minutes
     });
     return res.json({ paymentLink: session.url });
   } catch (error) {
