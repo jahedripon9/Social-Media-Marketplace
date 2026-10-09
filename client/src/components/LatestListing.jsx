@@ -7,7 +7,7 @@ const LatestListing = () => {
   const { listings } = useSelector((state) => state.listing);
 
   return (
-    <div className="mt-8 mb-8">
+    <div className="mt-8 mb-8 mx-auto ">
       <Title
         className="text-center"
         title="Latest Listing"
