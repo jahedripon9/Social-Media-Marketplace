@@ -32,17 +32,18 @@ export const stripeWebhook = async (request, response) => {
           const sessionListList = await stripeInstance.checkout.sessions.list({
             payment_intent: paymentIntent.id,
           });
+
           const session = sessionList.data[0];
           const { transactionId, appId } = session.metadata;
           if (appId === "flipearn" && transactionId) {
-            const transaction = await prism.transaction.update({
+            const transaction = await prisma.transaction.update({
               where: { id: transactionId },
               data: { isPaid: true },
             });
             //Send New Credentials to the buyer  using the email address
             await inngest.send({
               name: "app/purchase",
-              data: {transaction},
+              data: { transaction },
             });
 
             //Mark the listing as sold
