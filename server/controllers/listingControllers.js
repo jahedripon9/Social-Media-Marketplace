@@ -520,40 +520,102 @@ export const getAllUserOrders = async (req, res) => {
 };
 
 //Withdraw Amount
+// export const withdrawAmount = async (req, res) => {
+//   try {
+//     const { userId } = await req.auth();
+//     const { amount, account } = req.body;
+
+//     const user = await prisma.user.findUnique({
+//       where: { id: userId },
+//     });
+
+//     const balance = user.earned - user.withdrawn;
+
+//     if (amount > balance) {
+//       return res.status(400).json({ message: "Insufficient Balance" });
+//     }
+
+//     const withdrawal = await prisma.withdrawal.create({
+//       data: {
+//         userId,
+//         amount,
+//         account,
+//       },
+//     });
+
+//     await prisma.user.update({
+//       where: { id: userId },
+//       data: { withdrawn: { increment: account } },
+//     });
+
+//     return res.json({ message: "Applied for withdrawal", withdrawal });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ message: error.code || error.message });
+//   }
+// };
+
 export const withdrawAmount = async (req, res) => {
   try {
     const { userId } = await req.auth();
     const { amount, account } = req.body;
 
+    const withdrawalAmount = Number(amount);
+
+    if (!Number.isFinite(withdrawalAmount) || withdrawalAmount <= 0) {
+      return res.status(400).json({
+        message: "Invalid withdrawal amount",
+      });
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
     });
 
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
     const balance = user.earned - user.withdrawn;
 
-    if (amount > balance) {
-      return res.status(400).json({ message: "Insufficient Balance" });
+    if (withdrawalAmount > balance) {
+      return res.status(400).json({
+        message: "Insufficient Balance",
+      });
     }
 
     const withdrawal = await prisma.withdrawal.create({
       data: {
         userId,
-        amount,
+        amount: withdrawalAmount,
         account,
       },
     });
 
     await prisma.user.update({
       where: { id: userId },
-      data: { withdrawn: { increment: account } },
+      data: {
+        withdrawn: {
+          increment: withdrawalAmount,
+        },
+      },
     });
 
-    return res.json({ message: "Applied for withdrawal", withdrawal });
+    return res.json({
+      message: "Applied for withdrawal",
+      withdrawal,
+    });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: error.code || error.message });
+    console.error(error);
+    return res.status(500).json({
+      message: error.code || error.message,
+    });
   }
 };
+
+
 
 //Purchase Account
 export const purchaseAccount = async (req, res) => {
