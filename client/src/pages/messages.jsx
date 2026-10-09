@@ -135,7 +135,7 @@ const Messages = () => {
 
                     <div className="shrink-0">
                       <img
-                        src={chatUser?.images || "/default-avatar.png"}
+                        src={chatUser?.image || "/default-avatar.png"}
                         alt={chatUser?.name || "User"}
                         className="w-10 h-10 rounded-lg object-cover"
                         onError={(e) => {
