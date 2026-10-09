@@ -136,8 +136,10 @@ const sendPurchaseEmail = inngest.createFunction(
 
 // Inngest Function to send new credentials for deleted Listing
 const sendNewCredentials = inngest.createFunction(
-  { id: "send-new-credentials" },
-  { event: "app/listing-deleted" },
+  {
+    id: "send-new-credentials",
+    triggers: { event: "app/listing-deleted" },
+  },
   async ({ event }) => {
     const { listing, listingId } = event.data;
 
