@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { dummyChats } from "../assets/assets";
 import { MessageCircle, Search } from "lucide-react";
 import { format, isToday, isYesterday, parseISO } from "date-fns";
 import { useDispatch } from "react-redux";
@@ -126,13 +125,26 @@ const Messages = () => {
                   className="w-full p-4 hover:bg-gray-50 transition-colors text-left"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="shrink-0">
+                    {/* <div className="shrink-0">
                       <img
                         src={chatUser?.image}
                         alt={chatUser?.name}
                         className="w-10 h-10 rounded-lg object-cover"
                       />
+                    </div> */}
+
+                    <div className="shrink-0">
+                      <img
+                        src={chatUser?.images || "/default-avatar.png"}
+                        alt={chatUser?.name || "User"}
+                        className="w-10 h-10 rounded-lg object-cover"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/default-avatar.png";
+                        }}
+                      />
                     </div>
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <h3 className="font-semibold text-gray-800 truncate">

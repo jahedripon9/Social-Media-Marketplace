@@ -16,7 +16,6 @@ import api from "../configs/axios";
 const MyOrders = () => {
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
-  const dispatch = useDispatch();
 
   const currency = import.meta.env.VITE_CURRENCY || "$";
   const [orders, setOrders] = useState([]);
