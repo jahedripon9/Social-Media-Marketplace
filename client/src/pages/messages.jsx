@@ -31,16 +31,16 @@ const Messages = () => {
   };
 
   const filteredChats = useMemo(() => {
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.toLowerCase().trim();
     return chats.filter((chat) => {
       const chatUser =
         chat.chatUserId === user?.id ? chat?.ownerUser : chat?.chatUser;
       return (
-        chat.listing?.title.toLowerCase().includes(query) ||
-        chatUser?.name.toLowerCase().includes(query)
+        (chat.listing?.title ?? "").toLowerCase().includes(query) ||
+        (chatUser?.name ?? "").toLowerCase().includes(query)
       );
     });
-  }, [chats, searchQuery]);
+  }, [chats, searchQuery, user?.id]);
 
   const handleOpenChat = (chat) => {
     dispatch(setChat({ listing: chat.listing, chatId: chat.id }));

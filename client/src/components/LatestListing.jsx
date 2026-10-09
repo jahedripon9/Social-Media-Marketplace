@@ -9,6 +9,7 @@ const LatestListing = () => {
   return (
     <div className="mt-8 mb-8">
       <Title
+        className="text-center"
         title="Latest Listing"
         description="Discover the hottest social profile available right now."
       />
